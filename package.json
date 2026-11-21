@@ -1,0 +1,16 @@
+{
+  "name": "light-card-auth",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lightweight HTTP/JSON card authorization and web administration service",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "12.4.1"
+  },
+  "engines": {
+    "node": "20.x || 22.x || 23.x || 24.x"
+  }
+}

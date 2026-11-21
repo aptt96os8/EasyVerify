@@ -1,0 +1,11 @@
+{
+  "listenHost": "127.0.0.1",
+  "listenPort": 8080,
+  "databasePath": "data/auth.db",
+  "sessionHours": 12,
+  "heartbeatIntervalSeconds": 30,
+  "heartbeatTimeoutSeconds": 90,
+  "bindDevice": false,
+  "encryptionRequired": false,
+  "maxRequestBytes": 65536
+}
