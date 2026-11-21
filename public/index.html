@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>极简网络验证管理</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="page-shell">
+    <section id="login-view" class="login-layout">
+      <div class="brand-panel">
+        <div class="brand-title"><span class="brand-mark">极</span><strong>极简验证</strong></div>
+        <h1>极简网络验证<br>管理服务</h1>
+        <p>单一 HTTP 服务，提供卡密管理、同时在线数量控制、有效期检查、设备绑定、公告下发、版本管理和加密客户端验证。</p>
+        <ul class="feature-chips"><li>卡密管理</li><li>在线控制</li><li>设备绑定</li><li>加密验证</li></ul>
+      </div>
+      <div class="login-panel">
+        <div class="panel-heading"><h2>管理员登录</h2><p>使用管理账号登录卡密管理后台</p></div>
+        <form id="login-form" method="post" action="/api/login">
+          <label for="username">管理员账号</label>
+          <input id="username" type="text" autocomplete="username" placeholder="请输入管理员账号" required disabled>
+          <label for="password">管理员密码</label>
+          <input id="password" type="password" autocomplete="current-password" placeholder="请输入管理员密码" required disabled>
+          <p id="login-error" class="form-message" role="alert"></p>
+          <button id="login-button" class="primary-button" type="submit" disabled>登录管理后台</button>
+        </form>
+        <p id="login-readiness" class="security-note">此登录页需要 JavaScript；如按钮未启用，请确认脚本已加载。</p>
+        <p class="security-note">登录凭证仅发送至当前管理服务器</p>
+      </div>
+    </section>
+
+    <section id="dashboard-view" class="dashboard hidden">
+      <aside class="sidebar">
+        <div class="sidebar-brand"><span class="brand-mark">极</span><strong>极简验证</strong></div>
+        <nav>
+          <a class="nav-item active" href="#overview"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>管理概览</a>
+          <a class="nav-item" href="#cards"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg>卡密管理</a>
+          <a class="nav-item" href="#announcements"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h4l6 4V6l-6 4H3z"/><path d="M16.5 9a3.5 3.5 0 0 1 0 6M19 6a7.5 7.5 0 0 1 0 12"/></svg>公告管理</a>
+          <a class="nav-item" href="#versions"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12V4h8l10 10-8 8-10-10z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>版本管理</a>
+          <a class="nav-item" href="#settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>系统设置</a>
+          <a class="nav-item" href="#logs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7M9 8h3"/></svg>操作日志</a>
+        </nav>
+      </aside>
+      <div class="workspace">
+        <header class="topbar"><h2 id="page-title">管理概览</h2><div class="account-area"><span class="account-info"><span class="avatar">管</span><span>管理员：<strong id="admin-name"></strong><small id="session-expiry"></small></span></span><span id="logout-message" class="form-message" role="alert" hidden></span><button id="logout-button" class="secondary-button">退出登录</button></div></header>
+        <div class="content">
+          <section id="overview" class="summary-grid">
+            <article class="summary-card tone-blue"><span class="summary-label">在线卡密</span><strong id="online-cards" class="stat-value">0</strong></article>
+            <article class="summary-card tone-green"><span class="summary-label">总卡密数</span><strong id="total-cards" class="stat-value">0</strong></article>
+            <article class="summary-card tone-amber"><span class="summary-label">已激活卡密</span><strong id="activated-cards" class="stat-value">0</strong></article>
+          </section>
+          <section id="cards" class="feature-panel">
+            <div class="feature-heading"><h3>卡密管理</h3><button id="generate-button" class="primary-button compact-button">生成卡密</button></div>
+            <div class="card-toolbar"><span id="selection-count">已选择 0 张</span><button id="add-time-button" class="secondary-button" data-batch disabled>加时</button><button id="subtract-time-button" class="secondary-button" data-batch disabled>减时</button><button id="ban-button" class="warning-button" data-batch disabled>封禁</button><button id="delete-button" class="danger-button" data-batch disabled>删除</button><button id="unbind-button" class="secondary-button" data-batch disabled>解绑</button><button id="concurrency-button" class="secondary-button" data-batch disabled>设定</button><button id="refresh-button" class="secondary-button">刷新列表</button><button id="export-button" class="secondary-button" data-batch disabled>导出</button><button id="import-button" class="secondary-button">导入</button></div>
+            <p id="operation-message" class="form-message panel-message" role="status"></p>
+            <div class="table-container"><table><thead><tr><th><input id="select-all" type="checkbox" aria-label="全选本页卡密"></th><th>卡密</th><th>时长</th><th>在线 / 同时在线数量</th><th>创建时间</th><th>过期时间</th><th>状态</th><th>机器码</th></tr></thead><tbody id="card-list"></tbody></table></div>
+            <div class="pagination"><span id="page-summary">共 0 张</span><div><button id="previous-page" class="secondary-button">上一页</button><span id="page-number">第 1 页</span><button id="next-page" class="secondary-button">下一页</button></div></div>
+          </section>
+          <section id="announcements" class="feature-panel">
+            <div class="feature-heading"><h3>公告管理</h3><button id="announcement-create-button" class="primary-button compact-button">新增公告</button></div>
+            <p id="announcement-message" class="form-message panel-message" role="status"></p>
+            <div class="table-container announcement-table"><table><thead><tr><th>优先级</th><th>标题</th><th>内容</th><th>状态</th><th>更新时间</th><th>操作</th></tr></thead><tbody id="announcement-list"></tbody></table></div>
+          </section>
+          <section id="versions" class="feature-panel">
+            <div class="feature-heading"><h3>版本管理</h3></div>
+            <form id="version-form" class="settings-form">
+              <div class="settings-grid">
+                <div><label for="required-version">客户端版本号</label><input id="required-version" type="text" maxlength="40" placeholder="留空则不限制，例如 1.0.0" autocomplete="off" spellcheck="false"></div>
+                <div><label for="version-policy">登录规则</label><select id="version-policy" aria-label="登录规则"><option value="minimum">等于或高于此版本可登录</option><option value="exact">版本号不一致不能登录</option></select></div>
+              </div>
+              <p id="version-message" class="form-message" role="status"></p>
+              <button id="save-version-button" class="primary-button compact-button" type="submit">保存版本设置</button>
+            </form>
+          </section>
+          <section id="settings" class="feature-panel">
+            <div class="feature-heading"><h3>系统设置</h3></div>
+            <form id="settings-form" class="settings-form">
+              <label class="toggle-row" for="bind-device"><span><strong>卡密绑定设备</strong></span><input id="bind-device" type="checkbox"></label>
+              <label class="toggle-row" for="encryption-required"><span><strong>客户端强制加密</strong></span><input id="encryption-required" type="checkbox"></label>
+              <div class="settings-grid">
+                <div><label for="heartbeat-interval">心跳间隔（秒）</label><input id="heartbeat-interval" type="number" min="1" max="3600" required><small>客户端按此间隔发送心跳，范围 1–3600 秒。</small></div>
+                <div><label for="heartbeat-timeout">心跳超时（秒）</label><input id="heartbeat-timeout" type="number" min="2" max="86400" required><small>超过此时间未心跳则离线，范围 2–86400 秒。</small></div>
+              </div>
+              <p class="settings-note">加密协议：X25519 + HKDF-SHA256 + ChaCha20-Poly1305，响应使用 Ed25519 签名。公钥接口：<code>GET /api/crypto/public-key</code>。保存后立即生效，无需重启。</p>
+              <p id="settings-message" class="form-message" role="status"></p>
+              <button id="save-settings-button" class="primary-button compact-button" type="submit">保存系统设置</button>
+            </form>
+            <form id="account-form" class="settings-form account-form">
+              <div class="feature-heading"><h3>管理员账号</h3></div>
+              <p class="settings-note">修改需要验证当前密码。成功后所有当前管理员会话都会退出，请使用新登录名和新密码重新登录。</p>
+              <div class="settings-grid">
+                <div><label for="new-username">新登录名</label><input id="new-username" type="text" maxlength="32" autocomplete="username" required></div>
+                <div><label for="current-password">当前密码</label><input id="current-password" type="password" maxlength="128" autocomplete="current-password" required></div>
+                <div><label for="new-password">新密码</label><input id="new-password" type="password" minlength="8" maxlength="128" autocomplete="new-password" required><small>长度为 8–128 个字符。</small></div>
+                <div><label for="confirm-password">确认新密码</label><input id="confirm-password" type="password" minlength="8" maxlength="128" autocomplete="new-password" required></div>
+              </div>
+              <p id="account-message" class="form-message" role="alert"></p>
+              <button id="save-account-button" class="primary-button compact-button" type="submit">修改登录名和密码</button>
+            </form>
+          </section>
+          <section id="logs" class="feature-panel log-panel">
+            <div class="feature-heading"><h3>操作日志</h3><button id="refresh-logs-button" class="secondary-button">刷新日志</button></div>
+            <div class="table-container"><table><thead><tr><th>时间</th><th>操作者</th><th>操作</th><th>对象</th><th>详情</th><th>IP</th></tr></thead><tbody id="log-list"></tbody></table></div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+  <dialog id="generate-dialog"><form id="generate-form"><h3>生成卡密</h3><p>一次最多生成 1000 张。卡密为 12 位数字和字母，首次登录成功时开始计算有效期。</p><label for="generate-count">生成数量</label><input id="generate-count" type="number" min="1" max="1000" value="1" required><label for="generate-duration">卡密时长</label><div class="input-group"><input id="generate-duration" type="number" min="1" value="30" required><select id="generate-unit" aria-label="卡密时长单位"><option value="days">天</option><option value="hours">小时</option><option value="minutes">分钟</option></select></div><label for="generate-concurrent">同时在线数量</label><input id="generate-concurrent" type="number" min="1" max="100" value="1" required><div class="dialog-actions"><button type="button" class="secondary-button" data-close-dialog>取消</button><button type="submit" class="dialog-button">确认生成</button></div></form></dialog>
+  <dialog id="adjust-dialog"><form id="adjust-form"><h3 id="adjust-title">调整时间</h3><p id="adjust-description"></p><label for="adjust-amount">调整数值</label><div class="input-group"><input id="adjust-amount" type="number" min="1" value="1" required><select id="adjust-unit" aria-label="调整时长单位"><option value="days">天</option><option value="hours">小时</option><option value="minutes">分钟</option></select></div><div class="dialog-actions"><button type="button" class="secondary-button" data-close-dialog>取消</button><button type="submit" class="dialog-button">确认调整</button></div></form></dialog>
+  <dialog id="device-dialog"><form id="device-form"><h3>编辑机器码</h3><p id="device-serial" class="serial-number"></p><label for="device-value">机器码</label><input id="device-value" type="text" maxlength="128" placeholder="留空则清空机器码" autocomplete="off" spellcheck="false"><p id="device-message" class="form-message" role="alert"></p><div class="dialog-actions"><button type="button" class="secondary-button" data-close-dialog>取消</button><button type="submit" class="dialog-button">保存</button></div></form></dialog>
+  <dialog id="export-dialog" class="wide-dialog"><form id="export-form"><h3>导出卡密</h3><p id="export-description"></p><textarea id="export-text" class="serial-textarea" readonly aria-label="导出的卡密" spellcheck="false"></textarea><p id="export-message" class="form-message" role="status"></p><div class="dialog-actions"><button type="button" class="secondary-button" data-close-dialog>关闭</button><button type="submit" class="dialog-button">复制</button></div></form></dialog>
+  <dialog id="import-dialog"><form id="import-form"><h3>导入卡密</h3><p>选择 txt 文件，每行一个卡密，按原样导入。空行和重复行自动忽略，字母统一转为大写，已存在的卡密不会覆盖。</p><label class="file-picker" for="import-file"><input id="import-file" type="file" accept=".txt,text/plain"><span class="secondary-button">选择文件</span><span id="import-file-name" class="file-name">未选择文件</span></label><label for="import-duration">卡密时长</label><div class="input-group"><input id="import-duration" type="number" min="1" value="30" required><select id="import-unit" aria-label="导入卡密时长单位"><option value="days">天</option><option value="hours">小时</option><option value="minutes">分钟</option></select></div><label for="import-concurrent">同时在线数量</label><input id="import-concurrent" type="number" min="1" max="100" value="1" required><p id="import-message" class="form-message" role="status"></p><div class="dialog-actions"><button type="button" class="secondary-button" data-close-dialog>取消</button><button id="import-submit" type="submit" class="dialog-button">确认导入</button></div></form></dialog>
+  <dialog id="concurrency-dialog"><form id="concurrency-form"><h3>设定同时在线数量</h3><p id="concurrency-description"></p><label for="concurrency-value">同时在线数量（1–100）</label><input id="concurrency-value" type="number" min="1" max="100" value="1" required><p id="concurrency-message" class="form-message" role="alert"></p><div class="dialog-actions"><button type="button" class="secondary-button" data-close-dialog>取消</button><button type="submit" class="dialog-button">保存</button></div></form></dialog>
+  <dialog id="announcement-dialog" class="wide-dialog"><form id="announcement-form"><h3>新增公告</h3><label for="announcement-title">标题</label><input id="announcement-title" type="text" maxlength="100" autocomplete="off" required><label for="announcement-content">内容</label><textarea id="announcement-content" class="form-textarea" maxlength="5000" required></textarea><label for="announcement-priority">优先级（数值越大越靠前）</label><input id="announcement-priority" type="number" min="0" max="9999" value="0" required><p id="announcement-form-message" class="form-message" role="alert"></p><div class="dialog-actions"><button type="button" class="secondary-button" data-close-dialog>取消</button><button type="submit" class="dialog-button">发布</button></div></form></dialog>
+  <dialog id="priority-dialog"><form id="priority-form"><h3>设定优先级</h3><p id="priority-title"></p><label for="priority-value">优先级（数值越大越靠前）</label><input id="priority-value" type="number" min="0" max="9999" required><p id="priority-message" class="form-message" role="alert"></p><div class="dialog-actions"><button type="button" class="secondary-button" data-close-dialog>取消</button><button type="submit" class="dialog-button">保存</button></div></form></dialog>
+  <dialog id="confirm-dialog" class="confirm-dialog"><form method="dialog"><div class="dialog-actions"><button value="cancel" class="secondary-button">取消</button><button value="ok" class="danger-solid-button">确定</button></div></form></dialog>
+  <script src="/app.js"></script>
+</body>
+</html>
