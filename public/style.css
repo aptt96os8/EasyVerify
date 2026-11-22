@@ -133,9 +133,6 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 .device-cell { max-width: 260px; }
 .device-cell .device-id { display: inline-block; max-width: 200px; overflow: hidden; vertical-align: middle; text-overflow: ellipsis; font-family: Consolas, "Cascadia Mono", monospace; color: #4a5872; }
 .device-cell .device-empty { font-family: inherit; color: #a3adbd; }
-.icon-button { display: inline-grid; place-items: center; width: 28px; height: 28px; margin-left: 6px; padding: 0; vertical-align: middle; border: 0; border-radius: 8px; color: #8a97ab; background: transparent; transition: .2s; }
-.icon-button:hover, .icon-button:focus-visible { outline: none; color: var(--primary); background: var(--primary-soft); }
-.icon-button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .announcement-table { margin-top: 20px; }
 .announcement-table th:first-child, .announcement-table td:first-child { width: 72px; }
 .announcement-table td:first-child { color: var(--primary); font-weight: 600; }
@@ -179,6 +176,7 @@ dialog .file-picker { display: flex; align-items: center; gap: 12px; margin: 0; 
 .file-name { min-width: 0; overflow: hidden; color: var(--muted); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 26px; }
 dialog.confirm-dialog { width: min(300px, calc(100% - 40px)); padding: 24px; }
+.confirm-dialog h3 { margin: 0 0 24px; text-align: center; }
 .confirm-dialog .dialog-actions { justify-content: center; margin-top: 0; }
 .confirm-dialog .dialog-actions button { min-width: 96px; }
 #device-serial { margin-bottom: 6px; }
@@ -211,8 +209,7 @@ dialog.confirm-dialog { width: min(300px, calc(100% - 40px)); padding: 24px; }
   .brand-panel h1 { margin: 24px 0 14px; font-size: 40px; }
   .feature-chips { margin-top: 24px; }
   .dashboard { grid-template-columns: 76px 1fr; }
-  .sidebar-brand { justify-content: center; padding: 24px 0; }
-  .sidebar-brand strong { display: none; }
+  .sidebar-brand { justify-content: center; padding: 24px 0; font-size: 13px; }
   .nav-item { justify-content: center; font-size: 0; }
   .nav-item svg { width: 20px; height: 20px; }
   .summary-grid { grid-template-columns: 1fr; }

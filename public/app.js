@@ -13,7 +13,6 @@ const selectionCount = document.getElementById('selection-count');
 const operationMessage = document.getElementById('operation-message');
 const generateDialog = document.getElementById('generate-dialog');
 const adjustDialog = document.getElementById('adjust-dialog');
-const deviceDialog = document.getElementById('device-dialog');
 const concurrencyDialog = document.getElementById('concurrency-dialog');
 const exportDialog = document.getElementById('export-dialog');
 const importDialog = document.getElementById('import-dialog');
@@ -29,7 +28,6 @@ let total = 0;
 let cards = [];
 let loading = false;
 let adjustDirection = 'add';
-let deviceSerial = '';
 let priorityAnnouncementId = 0;
 let activeSession = null;
 let expiryTimer;
@@ -55,7 +53,8 @@ function notifyError(element, error) {
   if (error.name !== 'AbortError') notify(element, error.message);
 }
 
-function confirmAction() {
+function confirmAction(title) {
+  document.getElementById('confirm-title').textContent = title;
   confirmDialog.returnValue = '';
   confirmDialog.showModal();
   return new Promise((resolve) => confirmDialog.addEventListener('close', () => resolve(confirmDialog.returnValue === 'ok'), { once: true }));
@@ -189,13 +188,12 @@ function showLogin(message = '', success = false) {
   total = 0;
   loading = false;
   adjustDirection = 'add';
-  deviceSerial = '';
   priorityAnnouncementId = 0;
   for (const dialog of document.querySelectorAll('dialog')) {
     if (dialog.open) dialog.close('cancel');
   }
   for (const form of document.querySelectorAll('#dashboard-view form, dialog form')) form.reset();
-  for (const id of ['card-list', 'log-list', 'announcement-list', 'admin-name', 'session-expiry', 'device-serial', 'adjust-description', 'concurrency-description', 'export-description', 'priority-title']) {
+  for (const id of ['card-list', 'log-list', 'announcement-list', 'admin-name', 'session-expiry', 'adjust-description', 'concurrency-description', 'export-description', 'priority-title']) {
     document.getElementById(id).replaceChildren();
   }
   document.getElementById('import-file-name').textContent = '未选择文件';
@@ -309,27 +307,7 @@ function renderCards() {
     device.className = card.boundDeviceId ? 'device-id' : 'device-id device-empty';
     device.textContent = card.boundDeviceId || '未绑定';
     if (card.boundDeviceId) device.title = card.boundDeviceId;
-    const edit = document.createElement('button');
-    edit.type = 'button';
-    edit.className = 'icon-button';
-    edit.setAttribute('aria-label', `编辑卡密 ${card.serial} 的机器码`);
-    edit.title = '编辑机器码';
-    const svgNs = 'http://www.w3.org/2000/svg';
-    const icon = document.createElementNS(svgNs, 'svg');
-    icon.setAttribute('viewBox', '0 0 24 24');
-    icon.setAttribute('aria-hidden', 'true');
-    const path = document.createElementNS(svgNs, 'path');
-    path.setAttribute('d', 'M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4');
-    icon.append(path);
-    edit.append(icon);
-    edit.addEventListener('click', () => {
-      deviceSerial = card.serial;
-      document.getElementById('device-serial').textContent = card.serial;
-      document.getElementById('device-value').value = card.boundDeviceId;
-      notify(document.getElementById('device-message'), '');
-      deviceDialog.showModal();
-    });
-    deviceCell.append(device, edit);
+    deviceCell.append(device);
     cardList.append(row);
   }
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
@@ -453,7 +431,7 @@ async function loadAnnouncements() {
       });
       addButton(actions, item.enabled ? '停止下发' : '恢复下发', item.enabled ? 'warning-button' : 'secondary-button', () => announcementAction('/api/announcements/status', { id: item.id, enabled: !item.enabled }));
       addButton(actions, '删除', 'danger-button', async () => {
-        if (await confirmAction() && activeSession === session) await announcementAction('/api/announcements/delete', { id: item.id });
+        if (await confirmAction('确认删除') && activeSession === session) await announcementAction('/api/announcements/delete', { id: item.id });
       });
       addCell(row, '').append(actions);
       list.append(row);
@@ -548,19 +526,6 @@ document.getElementById('adjust-form').addEventListener('submit', async (event) 
     notify(operationMessage, result.msg, true);
     await refreshData();
   } catch (error) { notifyError(operationMessage, error); } finally { submit.disabled = false; }
-});
-document.getElementById('device-form').addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const session = activeSession;
-  const submit = event.target.querySelector('[type="submit"]');
-  submit.disabled = true;
-  try {
-    const result = await request('/api/cards/device', { method: 'POST', body: JSON.stringify({ serial: deviceSerial, deviceId: document.getElementById('device-value').value }) });
-    if (activeSession !== session) return;
-    deviceDialog.close();
-    notify(operationMessage, result.msg, true);
-    await Promise.all([loadCards(), loadLogs()]);
-  } catch (error) { notifyError(document.getElementById('device-message'), error); } finally { submit.disabled = false; }
 });
 document.getElementById('concurrency-button').addEventListener('click', () => {
   document.getElementById('concurrency-description').textContent = `为选中的 ${selected.size} 张卡密设定同时在线数量。`;
@@ -675,9 +640,9 @@ document.getElementById('account-form').addEventListener('submit', async (event)
   } catch (error) { notifyError(message, error); } finally { button.disabled = false; }
 });
 
-async function batchOperation(action) {
+async function batchOperation(action, title) {
   const session = activeSession;
-  if (!session || selected.size === 0 || !(await confirmAction()) || activeSession !== session) return;
+  if (!session || selected.size === 0 || !(await confirmAction(title)) || activeSession !== session) return;
   try {
     const result = await request(`/api/cards/${action}`, { method: 'POST', body: JSON.stringify({ serials: [...selected] }) });
     if (activeSession !== session) return;
@@ -686,9 +651,9 @@ async function batchOperation(action) {
     await refreshData();
   } catch (error) { notifyError(operationMessage, error); }
 }
-document.getElementById('ban-button').addEventListener('click', () => batchOperation('ban'));
-document.getElementById('delete-button').addEventListener('click', () => batchOperation('delete'));
-document.getElementById('unbind-button').addEventListener('click', () => batchOperation('unbind'));
+document.getElementById('ban-button').addEventListener('click', () => batchOperation('ban', '确认封禁'));
+document.getElementById('delete-button').addEventListener('click', () => batchOperation('delete', '确认删除'));
+document.getElementById('unbind-button').addEventListener('click', () => batchOperation('unbind', '确认解绑'));
 document.getElementById('refresh-button').addEventListener('click', () => Promise.all([loadCards(), loadStats()]));
 document.getElementById('refresh-logs-button').addEventListener('click', loadLogs);
 
