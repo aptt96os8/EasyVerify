@@ -239,7 +239,6 @@ const server = http.createServer(async (req, res) => {
       'POST /api/cards/ban': (body) => cards.ban(body, context),
       'POST /api/cards/delete': (body) => cards.remove(body, context),
       'POST /api/cards/unbind': (body) => cards.unbind(body, context),
-      'POST /api/cards/device': (body) => cards.device(body, context),
       'POST /api/cards/concurrency': (body) => cards.concurrency(body, context),
       'POST /api/settings': (body) => settings.update(body, context),
       'POST /api/settings/version': (body) => settings.updateVersion(body, context),

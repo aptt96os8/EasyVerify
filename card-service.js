@@ -179,22 +179,6 @@ class CardService {
     return { code: 0, msg: `已解绑 ${selected.length} 张卡密的机器码` };
   }
 
-  device(body, context) {
-    if (typeof body.serial !== 'string') throw new HttpError(400, 'INVALID_SERIAL', '卡密格式不正确');
-    if (typeof body.deviceId !== 'string' || body.deviceId.trim().length > 128) {
-      throw new HttpError(400, 'INVALID_DEVICE', '机器码不能超过 128 个字符');
-    }
-    const serial = body.serial.trim().toUpperCase();
-    const deviceId = body.deviceId.trim();
-    this.db.transaction(() => {
-      const previous = this.db.prepare('SELECT bound_device_id FROM cards WHERE serial = ?').get(serial);
-      if (!previous) throw new HttpError(404, 'CARD_NOT_FOUND', '卡密不存在！');
-      this.db.prepare('UPDATE cards SET bound_device_id = ? WHERE serial = ?').run(deviceId || null, serial);
-      logAction(this.db, { actor: context.username, action: deviceId ? '修改机器码' : '清空机器码', target: serial, detail: { previous: previous.bound_device_id || '', next: deviceId }, ip: context.ip });
-    }).immediate();
-    return { code: 0, msg: deviceId ? '机器码已更新' : '机器码已清空' };
-  }
-
   concurrency(body, context) {
     const selected = serials(body.serials);
     const maxConcurrent = integer(body.maxConcurrent, '同时在线数量', 1, 100);
